@@ -410,6 +410,7 @@ public class serverThread extends Thread {
                 }
 
             }catch(IOException e){
+                sendErrorCode(500);
                 System.out.println("it doesn't work");
             }
         }
@@ -453,7 +454,7 @@ public class serverThread extends Thread {
         else if (extension.equals("txt")){
             MIME = "text/plain";
         }
-        else if (extension.equals("html")){
+        else if (extension.equals("html") || extension.equals("cgi")){
             MIME = "text/html";
         }
         else if (extension.equals("gif")){
