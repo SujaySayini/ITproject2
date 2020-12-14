@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.RejectedExecutionHandler;
 
 
-class HTTP1Server {
+class HTTP3Server {
     public static void main(String[]args) throws Exception{ 
         
         if (args.length < 1) return;
@@ -38,8 +38,6 @@ class HTTP1Server {
                 
                 serverThread t = new serverThread(socket);
                 executor.execute(t);  
-                //t.start();
-                //t.join();
                 
             }
         }
