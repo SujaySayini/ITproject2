@@ -98,7 +98,7 @@ public class serverThread extends Thread {
         // each part of the request:
         String method = requestParts[0];
         String file = requestParts[1];
-        String modified = "";
+        //String modified = "";
 
         if (file.equals("/"))
             file = "./index.html";
@@ -119,23 +119,7 @@ public class serverThread extends Thread {
 
                 // Validates Cookie -> if valid -> change value in index_seen.html -> set file
                 // to index_seen.html
-                boolean value = false;
-                try {
-                    String decoded = URLDecoder.decode(cookie_value, "UTF-8");
-                    if (decoded.split("=")[0].equals("lasttime")) {
-                        if (isValidDateFormat(decoded.split("=")[1]))
-                            value = true;
-                        else
-                            value = false;
-                    } else
-                        value = false;
-
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                    value = false;
-                }
-
-                if (value) {
+                if (isValidCookie(cookie_value)) {
                     setLastSeen(cookie_value.split("=")[1]);
                     file = "./index_seen.html";
                 }
@@ -246,8 +230,31 @@ public class serverThread extends Thread {
         if (isValidFile(file))
             handleRequest(method, file, 200);
     }
+    public boolean isValidCookie(String CookieVal) {
+
+        boolean returnVal = false;
+        try {
+            String decoded = URLDecoder.decode(CookieVal, "UTF-8");
+            if (decoded.split("=")[0].equals("lasttime")){
+                if (isValidDateFormat(decoded.split("=")[1]))
+                        returnVal = true;
+                else
+                    returnVal = false;
+            }
+            else 
+                returnVal = false;
+
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            returnVal = false;
+        }
+
+        return returnVal;
+
+    }
     public boolean isValidDateFormat(String value) {
-        System.out.println(value);
+        //System.out.println(value);
         Date date = null;
         Date now = new Date();
         try {
@@ -403,15 +410,14 @@ public class serverThread extends Thread {
             message = String.format("HTTP/1.0 %s %s", 200, "OK");
         if (code == 304)
             message = String.format("HTTP/1.0 %s %s", 304, "Not Modified");
-        if (method.equals("HEAD")) {
-            try {
-                outToClient.writeBytes(message + "\r\n" + createHeader(file, method) + "\r\n" + "\r\n");
-                outToClient.flush();
-
-            } catch (IOException e) {
-                System.out.printf("Error sending response to client");
-            }
+        
+        try {
+            outToClient.writeBytes(message + "\r\n" + createHeader(file) + "\r\n" + "\r\n");
+            outToClient.flush();
+        } catch (IOException e) {
+            System.out.printf("Error sending response to client");
         }
+        
         try {
             File new_file = new File(file);
             byte[] fileContent = Files.readAllBytes(new_file.toPath());
@@ -515,7 +521,7 @@ public class serverThread extends Thread {
      * 01 Oct 2021 03:44:00 GMT[CRLF] [CRLF]
      */
 
-    private String createHeader(String fileName, String method) {
+    private String createHeader(String fileName) {
 
         String header = "", extension, MIME = "";
 
@@ -542,7 +548,7 @@ public class serverThread extends Thread {
             MIME = "application/octet-stream";
         }
 
-        File new_file = new File("." + fileName);
+        File new_file = new File(fileName);
         long fileSize = new_file.length();
         header += "Content-Type: " + MIME + "\r\n";
         header += "Content-Length: " + fileSize + "\r\n";
